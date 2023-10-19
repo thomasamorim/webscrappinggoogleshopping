@@ -1,0 +1,116 @@
+import openpyxl
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.select import Select
+from time import sleep
+
+#Right here, you'll create a excel file where the columns will be divided in the follow sequence: IDENTIFIER| ITEM DESCRIPTION| MIN. VALUE| MAX. VALUE
+file_path = 'C:\Python\Cagepa\itens.xlsx'
+
+workbook_origem = openpyxl.load_workbook(file_path)
+
+sheet = workbook_origem.active
+
+itens = []
+
+#This loop will guide all itens that you want to budget into lists
+for i in range(sheet.max_row):
+    itens.append((sheet.cell(row=i+1, column=2).value))
+
+minimos_desejados = []
+for i in range(sheet.max_row):
+    minimos_desejados.append((sheet.cell(row=i+1, column=3).value))
+
+maximos_desejados = []
+for i in range(sheet.max_row):
+    maximos_desejados.append((sheet.cell(row=i+1, column=4).value))
+    
+identificador=[]
+for i in range(sheet.max_row):
+    identificador.append((sheet.cell(row=i+1, column=1).value))
+
+workbook_destino = openpyxl.Workbook()
+
+cota = 1
+
+#After getting everything into lists, the following loop will find the itens one by one in the google shopping and write every new information in a new excel file
+for item in itens:
+    driver = webdriver.Chrome()
+    driver.get('https://shopping.google.com.br/')
+    sleep(5)
+
+    caixa_pesquisa = driver.find_element(By.XPATH, "//input[@class='r7gAOb yyJm8b']")
+    caixa_pesquisa.send_keys(item)
+    caixa_pesquisa.send_keys(Keys.ENTER)
+    sleep(5)
+    
+    valor_baixo = driver.find_element(By.XPATH, "//div[@class='GCUv5c']//input[@name='lower']")
+    valor_baixo.send_keys(minimos_desejados[cota-1])
+    sleep(2)
+
+    valor_alto = driver.find_element(By.XPATH, "//div[@class='GCUv5c']//input[@name='upper']")
+    valor_alto.send_keys(maximos_desejados[cota-1])
+    valor_alto.send_keys(Keys.ENTER)
+    sleep(2)
+
+    descricao = []
+    preço = []
+    distribuidor = []
+    frete = []
+
+    titulos = driver.find_elements(By.XPATH, "//h3[@class='tAxDx']")
+    valores = driver.find_elements(By.XPATH, "//span[@class='a8Pemb OFFNJ']")
+    credores = driver.find_elements(By.XPATH, "//div[@class='aULzUe IuHnof']")
+    fretes = driver.find_elements(By.XPATH, "//div[@class='vEjMR']")
+    links = driver.find_elements(By.XPATH, "//div[@class='mnIHsc']//a")
+
+    for titulo in titulos:
+        descricao.append(titulo.text)
+    
+    for valor in valores:
+        preço.append(valor.text)
+
+    for credor in credores:
+        distribuidor.append(credor.text)
+    
+    for entrega in fretes:
+        frete.append(entrega.text)
+    
+    links_sites = []
+    unicos = []
+
+    for link in links:
+        url = link.get_attribute('href')
+        links_sites.append(url)
+    
+    for i in range(len(links_sites)):
+        if i % 2 != 0:
+            unicos.append(links_sites[i])
+        
+    sleep(3)
+    driver.quit()
+    
+    nova_aba = workbook_destino.create_sheet(title=f'{identificador[cota-1]}')
+
+    for index, item in enumerate(descricao, start=1):
+        nova_aba.cell(row=index, column=1, value=item)
+
+    for index, item in enumerate(preço, start=1):
+        nova_aba.cell(row=index, column=2, value=item)
+
+    for index, item in enumerate(distribuidor, start=1):
+        nova_aba.cell(row=index, column=3, value=item)
+    
+    for index, item in enumerate(frete, start=1):
+        nova_aba.cell(row=index, column=4, value=item)
+
+    for index, item in enumerate(unicos, start=1):
+        nova_aba.cell(row=index, column=5, value=item)
+    
+    cota+=1
+
+workbook_destino.save('cotações.xlsx')
+workbook_destino.close()
+
+print('Cotações impressas!')
