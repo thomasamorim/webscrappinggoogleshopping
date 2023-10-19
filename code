@@ -92,7 +92,7 @@ for item in itens:
     driver.quit()
     
     nova_aba = workbook_destino.create_sheet(title=f'{identificador[cota-1]}')
-
+#Indexing 
     for index, item in enumerate(descricao, start=1):
         nova_aba.cell(row=index, column=1, value=item)
 
