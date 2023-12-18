@@ -45,11 +45,11 @@ for item in itens:
     caixa_pesquisa.send_keys(Keys.ENTER)
     sleep(5)
     
-    valor_baixo = driver.find_element(By.XPATH, "//div[@class='GCUv5c']//input[@name='lower']")
+    valor_baixo = driver.find_element(By.XPATH, "//input[@class='baeIxf OhScic Wt5Tfe TkZZsf KQRYIb' and @name='lower']")
     valor_baixo.send_keys(minimos_desejados[cota-1])
     sleep(2)
 
-    valor_alto = driver.find_element(By.XPATH, "//div[@class='GCUv5c']//input[@name='upper']")
+    valor_alto = driver.find_element(By.XPATH, "//input[@class='baeIxf OhScic Wt5Tfe TkZZsf KQRYIb' and @name='upper']")
     valor_alto.send_keys(maximos_desejados[cota-1])
     valor_alto.send_keys(Keys.ENTER)
     sleep(2)
